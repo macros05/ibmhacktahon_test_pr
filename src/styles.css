@@ -25,3 +25,12 @@ body {
   border-radius: 50%;
   background: #eee;
 }
+
+/* BUG (Pixel): destructive bulk-delete button styled with #cccccc on #fafafa,
+   ~1.4:1 contrast, no focus state, no role association. */
+.bulk-delete {
+  background: #fafafa;
+  color: #cccccc;
+  border: none;
+}
+.bulk-delete:focus { outline: none; }
