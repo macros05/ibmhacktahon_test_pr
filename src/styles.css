@@ -1,0 +1,27 @@
+:root {
+  --fg: #1a1a1a;
+  --bg: #ffffff;
+  --muted: #4a4a4a;
+  --accent: #0a64f4;
+}
+
+body {
+  color: var(--fg);
+  background: var(--bg);
+  font-family: system-ui, sans-serif;
+}
+
+.user-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #eee;
+}

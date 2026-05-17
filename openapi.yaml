@@ -1,0 +1,48 @@
+openapi: 3.0.3
+info:
+  title: demo-app
+  version: 0.1.0
+paths:
+  /api/auth/login:
+    post:
+      summary: Log in with email + password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+        '401': { description: Invalid credentials }
+  /api/users/{id}:
+    get:
+      summary: Fetch a single user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: User }
+        '404': { description: Not found }
+  /api/users:
+    get:
+      summary: List users (paginated)
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+      responses:
+        '200': { description: User list }
