@@ -25,3 +25,23 @@ body {
   border-radius: 50%;
   background: #eee;
 }
+
+/* BUG: 1.6:1 contrast ratio — fails WCAG AA (needs 4.5:1 for body text). */
+.login {
+  background: #fafafa;
+  color: #bdbdbd;
+  padding: 12px;
+}
+
+/* BUG: removes focus outline globally — keyboard users can't tell what's focused. */
+*:focus {
+  outline: none;
+}
+
+/* BUG: clickable div styled like a button but isn't one. */
+.btn {
+  background: #e0e0e0;
+  color: #d0d0d0; /* 1.1:1 — basically invisible */
+  padding: 8px 16px;
+  cursor: pointer;
+}
