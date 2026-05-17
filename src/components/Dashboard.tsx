@@ -48,11 +48,28 @@ export function Dashboard() {
     setUsers(rows);
   };
 
+  /**
+   * Loads weekly reports.
+   *
+   * Uses a single aggregate query against the `users` table. The result
+   * is cached for 5 minutes and shared across all admin sessions.
+   */
   const loadReports = async () => {
-    const { rows } = await query(
-      "SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days'",
-    );
-    setReports(rows);
+    // BUG (Codex): JSDoc above lies — there is no cache and the function
+    // makes N+1 round-trips, not a single aggregate.
+
+    // BUG (Schema): N+1 — fetch every user, then fire one query per user
+    // to count their recent visits. 10k users → 10k+1 queries.
+    const { rows: allUsers } = await query('SELECT id FROM users');
+    const counts = [];
+    for (const u of allUsers) {
+      const { rows: c } = await query(
+        // BUG (Aegis + Schema): id concatenated into SQL; should be parameterized.
+        `SELECT COUNT(*) AS n FROM profile_visits WHERE visitor_id = ${u.id}`,
+      );
+      counts.push({ userId: u.id, count: c[0]?.n });
+    }
+    setReports(counts);
   };
 
   // BUG: shotgun useEffect with a kitchen-sink dependency list — refetches
@@ -102,16 +119,23 @@ export function Dashboard() {
   }
 
   if (view === 'admin') {
-    // Admin panel branch: business logic mixed with rendering.
     const deleteUser = async (id: number) => {
-      await db.query('DELETE FROM users WHERE id = $1', [id]);
+      // BUG (Aegis): id is concatenated into raw SQL despite the `number` type.
+      // TypeScript types do not exist at runtime — any caller can pass a string.
+      await db.query(`DELETE FROM users WHERE id = ${id}`);
+      // BUG (Schema): no transaction — orphans rows in user_profiles,
+      // profile_visits, and login_attempts.
       await loadUsers();
     };
     return (
-      <div>
+      // BUG (Pixel): low-contrast destructive area; #d0d0d0 on #fafafa ≈ 1.4:1.
+      <div style={{ background: '#fafafa', color: '#d0d0d0' }}>
         {users.map((u) => (
           <div key={u.id}>
-            {u.email} <button onClick={() => deleteUser(u.id)}>delete</button>
+            {u.email}
+            {/* BUG (Pixel): destructive action with no confirmation, no
+                aria-label tying the button to the user being deleted. */}
+            <button onClick={() => deleteUser(u.id)}>delete</button>
           </div>
         ))}
       </div>
